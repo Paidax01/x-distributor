@@ -104,7 +104,10 @@ export function resolvePlatformNames(keys: string[], mode: PostMode): string[] {
 }
 
 // 为每个勾选平台打开发布页并注入自动化脚本
-export async function createTabsForPlatforms(data: SyncData) {
+export async function createTabsForPlatforms(data: SyncData): Promise<{
+  tabs: { tab: chrome.tabs.Tab; platformInfo: SyncDataPlatform }[]
+  groupId?: number
+}> {
   const tabs: { tab: chrome.tabs.Tab; platformInfo: SyncDataPlatform }[] = []
   let groupId: number | undefined
 
@@ -161,5 +164,5 @@ export async function createTabsForPlatforms(data: SyncData) {
     await new Promise((resolve) => setTimeout(resolve, 3000))
   }
 
-  return tabs
+  return { tabs, groupId }
 }

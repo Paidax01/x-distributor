@@ -1,6 +1,6 @@
 import type { SyncData, VideoData } from "../common"
 
-// 移植自 MultiPost-Extension src/sync/video/okjike.ts
+// 即刻视频帖发布适配器
 // 此函数在 web.okjike.com 页面内执行，必须自包含。
 export async function VideoOkjike(data: SyncData) {
   const { title, content, video } = data.data as VideoData

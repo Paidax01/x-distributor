@@ -1,6 +1,6 @@
 import type { DynamicData, SyncData } from "../common"
 
-// 移植自 MultiPost-Extension src/sync/dynamic/douyin.ts
+// 抖音图文帖发布适配器
 // 注意：此函数会经 chrome.scripting.executeScript({func}) 序列化后在
 // creator.douyin.com 页面内执行，必须自包含，不能引用外部作用域。
 export async function DynamicDouyin(data: SyncData) {

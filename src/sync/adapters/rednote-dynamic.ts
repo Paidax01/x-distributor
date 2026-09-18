@@ -1,6 +1,6 @@
 import type { DynamicData, SyncData } from "../common"
 
-// 移植自 MultiPost-Extension src/sync/dynamic/rednote.ts
+// 小红书图文帖发布适配器
 // 此函数在 creator.xiaohongshu.com 页面内执行，必须自包含。
 export async function DynamicRednote(data: SyncData) {
   const { title, content, images, tags } = data.data as DynamicData

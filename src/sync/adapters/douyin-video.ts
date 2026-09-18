@@ -1,6 +1,6 @@
 import type { SyncData, VideoData } from "../common"
 
-// 移植自 MultiPost-Extension src/sync/video/douyin.ts（去掉定时发布与封面选择）
+// 抖音视频帖发布适配器
 // 此函数在 creator.douyin.com 页面内执行，必须自包含。
 export async function VideoDouyin(data: SyncData) {
   function waitForElement(selector: string, timeout = 10000): Promise<Element> {
