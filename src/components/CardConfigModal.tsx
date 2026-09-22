@@ -720,12 +720,17 @@ export function CardConfigModal({
               <select
                 value={activePresetId ?? ""}
                 onChange={(e) => {
+                  // 选「默认预设」= 恢复默认配置（updateCardConfig 会同时清除预设选中态）
                   const preset = presets.find((p) => p.id === e.target.value)
-                  if (preset) onApplyPreset(preset)
+                  if (preset) {
+                    onApplyPreset(preset)
+                  } else {
+                    onChange({ ...DEFAULT_CARD_CONFIG })
+                  }
                 }}
                 className="min-w-0 flex-1 border-[0.5px] border-black/[0.08] bg-black/[0.035] px-1.5 text-[11px] text-black/[0.92] outline-none dark:border-white/10 dark:bg-white/[0.055] dark:text-white/[0.92]"
                 style={{ height: 28, borderRadius: M.fieldRadius }}>
-                <option value="">未保存预设</option>
+                <option value="">默认预设</option>
                 {presets.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}

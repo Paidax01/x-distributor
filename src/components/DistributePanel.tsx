@@ -16,6 +16,7 @@ import {
   mergeCardConfig,
   migrateLegacySettings
 } from "~card/config"
+import donateImg from "data-base64:~assets/donate.png"
 import { bus } from "~utils/bus"
 import { CardConfigModal } from "./CardConfigModal"
 import { MediaList } from "./MediaList"
@@ -87,6 +88,7 @@ export function DistributePanel() {
   const [tweetOverrides, setTweetOverrides] = useState<Record<string, TweetOverrideEntry>>({})
   const [activePresetId, setActivePresetId] = useState<string | null>(null)
   const [configOpen, setConfigOpen] = useState(false)
+  const [donateOpen, setDonateOpen] = useState(false)
   const [renderEngine, setRenderEngine] = useState<RenderEngine>("canvas")
   const cardConfigRef = useRef(cardConfig)
   const genCardsRef = useRef<() => Promise<void>>()
@@ -211,6 +213,20 @@ export function DistributePanel() {
     })
     return off
   }, [degradeToDynamic])
+
+  // SPA 跳转自动收起：x.com 是单页应用，点击跳转到其他帖子只改地址不刷新页面；
+  // 面板打开期间监听地址，一旦变化（切到别的帖子/页面）就收起面板，不常驻
+  const openUrlRef = useRef<string>("")
+  useEffect(() => {
+    if (!open) return
+    openUrlRef.current = location.href
+    const timer = setInterval(() => {
+      if (location.href !== openUrlRef.current) {
+        setOpen(false)
+      }
+    }, 400)
+    return () => clearInterval(timer)
+  }, [open])
 
   // Esc 关闭（预览/配置弹层打开时优先关闭弹层，不关面板）
   useEffect(() => {
@@ -506,24 +522,24 @@ export function DistributePanel() {
                 </span>
               )}
             </div>
-            <div className="flex rounded-lg bg-neutral-100 p-0.5 text-xs dark:bg-neutral-800">
+            <div className="flex rounded-lg bg-neutral-100 p-1 text-sm dark:bg-neutral-800">
               <button
                 type="button"
                 onClick={() => switchMode("DYNAMIC")}
-                className={`rounded-md px-2 py-1 transition-colors ${
-                  mode === "DYNAMIC" ? "bg-white font-medium shadow-sm dark:bg-neutral-600" : "text-neutral-500"
+                className={`rounded-md px-3.5 py-1.5 transition-colors ${
+                  mode === "DYNAMIC" ? "bg-white font-semibold shadow-sm dark:bg-neutral-600" : "text-neutral-500"
                 }`}>
-                图文
+                图文贴
               </button>
               <button
                 type="button"
                 onClick={() => switchMode("VIDEO")}
                 disabled={!hasVideoItem}
                 title={!hasVideoItem ? "该帖没有可用的视频" : undefined}
-                className={`rounded-md px-2 py-1 transition-colors disabled:opacity-40 ${
-                  mode === "VIDEO" ? "bg-white font-medium shadow-sm dark:bg-neutral-600" : "text-neutral-500"
+                className={`rounded-md px-3.5 py-1.5 transition-colors disabled:opacity-40 ${
+                  mode === "VIDEO" ? "bg-white font-semibold shadow-sm dark:bg-neutral-600" : "text-neutral-500"
                 }`}>
-                视频
+                视频贴
               </button>
             </div>
           </div>
@@ -566,8 +582,8 @@ export function DistributePanel() {
             </div>
           )}
 
-          {/* 分享卡片：开关 + 配置入口 */}
-          <div className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 px-3 py-2.5 dark:border-neutral-700">
+          {/* 分享卡片：开关 + 配置入口（仅图文贴；视频贴无卡片形态） */}
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 px-3 py-2.5 dark:border-neutral-700" style={mode === "VIDEO" ? { display: "none" } : undefined}>
             <div className="min-w-0 pr-1">
               <div className="text-sm">生成分享卡片</div>
               <div className="text-xs leading-4 text-neutral-500">
@@ -691,8 +707,67 @@ export function DistributePanel() {
               </>
             )}
           </button>
+
+          {/* 作者栏：左 by 派大鑫 / 打赏，右 平台主页链接 */}
+          <div className="mt-2.5 flex items-center justify-between px-1 pb-0.5 text-[13px] text-neutral-400">
+            <div className="flex items-center gap-2">
+              <span>by 派大鑫</span>
+              <button
+                type="button"
+                onClick={() => setDonateOpen(true)}
+                className="transition-colors hover:text-amber-500">
+                打赏
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href="https://www.xiaohongshu.com/user/profile/5a2e96aab1da1465364b727b"
+                target="_blank"
+                rel="noreferrer"
+                className="transition-colors hover:text-sky-500">
+                小红书
+              </a>
+              <a
+                href="https://www.douyin.com/user/MS4wLjABAAAAhrXRsbn5nabeJQoh9vCnHq40VI5ycd7lMOZJ0o3VQh8?from_tab_name=main&vid=7638626095344654335"
+                target="_blank"
+                rel="noreferrer"
+                className="transition-colors hover:text-sky-500">
+                抖音
+              </a>
+              <a
+                href="https://x.com/xin_pai88825"
+                target="_blank"
+                rel="noreferrer"
+                className="transition-colors hover:text-sky-500">
+                X
+              </a>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* 打赏弹窗 */}
+      {donateOpen && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setDonateOpen(false)}>
+          <div
+            className="relative rounded-2xl bg-white p-3 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setDonateOpen(false)}
+              aria-label="关闭"
+              className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 text-white transition-colors hover:bg-black/65">
+              ×
+            </button>
+            <img src={donateImg} alt="赞赏码" className="max-h-[64vh] max-w-[280px] rounded-lg" />
+            <div className="pb-1 pt-2 text-center text-xs text-neutral-500">
+              感谢支持，祝你生活愉快
+            </div>
+          </div>
+        </div>
+      )}
 
       {previewItem && <MediaPreviewModal item={previewItem} onClose={() => setPreviewItem(null)} />}
 

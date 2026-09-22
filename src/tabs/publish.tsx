@@ -18,9 +18,17 @@ export default function Publish() {
   const [notice, setNotice] = useState<string | null>(null)
   const [errors, setErrors] = useState<string[]>([])
   const [tabs, setTabs] = useState<
-    Array<{ id?: number; title?: string; url?: string; favIconUrl?: string }>
+    Array<{ id?: number; title?: string; url?: string; favIconUrl?: string; platformLabel?: string }>
   >([])
   const [summary, setSummary] = useState<string>("")
+  const [platformNames, setPlatformNames] = useState<string[]>([])
+  const [groupId, setGroupId] = useState<number | null>(null)
+  const [groupClosing, setGroupClosing] = useState(false)
+  const [groupClosed, setGroupClosed] = useState<number | null>(null)
+
+  useEffect(() => {
+    document.title = "X 分发"
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -53,6 +61,22 @@ export default function Publish() {
 
       const inner = data.data as Partial<DynamicData & VideoData>
       setSummary(inner.title || inner.content?.slice(0, 40) || "")
+      // name 形如 DYNAMIC_DOUYIN / VIDEO_REDNOTE，映射为中文平台名
+      const nameLabels: Record<string, string> = {
+        douyin: "抖音",
+        rednote: "小红书",
+        okjike: "即刻"
+      }
+      setPlatformNames(
+        Array.from(
+          new Set(
+            (data.platforms ?? []).map((p) => {
+              const key = p.name.split("_")[1]?.toLowerCase() ?? ""
+              return nameLabels[key] ?? key
+            })
+          )
+        ).filter(Boolean)
+      )
 
       // 下载媒体并转为 blob URL（扩展页有 host_permissions，可绕过 CORS；
       // 注入函数在平台页内 fetch blob URL 完成上传）
@@ -98,6 +122,9 @@ export default function Publish() {
           (t: { tab?: chrome.tabs.Tab }) => t.tab ?? t
         )
       )
+      if (typeof publishResponse?.groupId === "number") {
+        setGroupId(publishResponse.groupId)
+      }
       setStep("done")
     }
 
@@ -140,6 +167,17 @@ export default function Publish() {
           </h1>
           <p className="text-sm text-neutral-500">{STEP_TEXT[step]}</p>
           {summary && <p className="w-full truncate text-center text-xs text-neutral-400">{summary}</p>}
+          {platformNames.length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              {platformNames.map((name) => (
+                <span
+                  key={name}
+                  className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-medium text-sky-600">
+                  {name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {!isDone && !isError && (
@@ -162,8 +200,8 @@ export default function Publish() {
               已打开 {tabs.length} 个发布页（已归入同一标签组），点击可切换：
             </div>
             <ul className="space-y-2">
-              {tabs.map((tab) => (
-                <li key={tab.id}>
+              {tabs.map((tab, index) => (
+                <li key={tab.id ?? index}>
                   <button
                     type="button"
                     onClick={() => tab.id && chrome.tabs.update(tab.id, { active: true })}
@@ -171,7 +209,14 @@ export default function Publish() {
                     {tab.favIconUrl && (
                       <img src={tab.favIconUrl} alt="" className="h-4 w-4 shrink-0" />
                     )}
-                    <span className="flex-1 truncate">{tab.title || tab.url}</span>
+                    <span className="flex-1 truncate">
+                      {tab.platformLabel && (
+                        <span className="mr-1.5 rounded-full bg-sky-100 px-1.5 py-0.5 text-[11px] font-medium text-sky-600">
+                          {tab.platformLabel}
+                        </span>
+                      )}
+                      {tab.title || tab.url || tab.platformLabel || "发布页"}
+                    </span>
                     <SendIcon className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
                   </button>
                 </li>
@@ -185,6 +230,32 @@ export default function Publish() {
             请到各平台标签页确认内容；若未开启「自动点击发布」，需要你手动点击发布按钮。
             媒体上传依赖本窗口，发布完成前请勿关闭它。
           </div>
+        )}
+
+        {isDone && groupId !== null && (
+          groupClosed === null ? (
+            <button
+              type="button"
+              disabled={groupClosing}
+              onClick={async () => {
+                setGroupClosing(true)
+                try {
+                  const res = await chrome.runtime.sendMessage({ action: "X_DIST_CLOSE_GROUP" })
+                  setGroupClosed(typeof res?.closed === "number" ? res.closed : 0)
+                } catch {
+                  setGroupClosed(0)
+                } finally {
+                  setGroupClosing(false)
+                }
+              }}
+              className="w-full rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 disabled:opacity-60 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800">
+              {groupClosing ? "正在关闭…" : `关闭全部 ${tabs.length} 个发布页`}
+            </button>
+          ) : (
+            <div className="rounded-xl bg-green-50 p-3 text-center text-xs text-green-600">
+              已关闭 {groupClosed} 个发布页
+            </div>
+          )
         )}
 
         {(isDone || isError) && (

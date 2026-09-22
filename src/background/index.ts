@@ -4,6 +4,7 @@ import { createTabsForPlatforms } from "~sync/platforms"
 import { fetchTweetMedia } from "./syndication"
 
 let currentSyncData: SyncData | null = null
+let currentGroupId: number | undefined
 let currentPublishPopup: chrome.windows.Window | null = null
 
 // ---------- HTML 渲染引擎：扩展渲染窗口管理 ----------
@@ -138,16 +139,37 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     return true
   }
 
+  // 一键关闭本次分发的标签组（发布完成后，从进度小窗触发）
+  if (request.action === "X_DIST_CLOSE_GROUP") {
+    ;(async () => {
+      try {
+        if (!currentGroupId) {
+          sendResponse({ closed: 0 })
+          return
+        }
+        const groupTabs = await chrome.tabs.query({ groupId: currentGroupId })
+        const tabIds = groupTabs.map((t) => t.id!).filter(Boolean)
+        await chrome.tabs.remove(tabIds)
+        currentGroupId = undefined
+        sendResponse({ closed: tabIds.length })
+      } catch (error) {
+        sendResponse({ error: String(error) })
+      }
+    })()
+    return true
+  }
+
   if (request.action === "X_DIST_PUBLISH_NOW") {
     const data = request.data as SyncData
     if (Array.isArray(data.platforms) && data.platforms.length > 0) {
       ;(async () => {
         try {
-          const tabs = await createTabsForPlatforms(data)
+          const { tabs, groupId } = await createTabsForPlatforms(data)
+          currentGroupId = groupId
           if (currentPublishPopup?.id) {
             await chrome.windows.update(currentPublishPopup.id, { focused: true })
           }
-          sendResponse({ tabs })
+          sendResponse({ tabs, groupId })
         } catch (error) {
           console.error("创建标签页或分组时出错:", error)
           sendResponse({ error: String(error) })

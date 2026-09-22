@@ -17,10 +17,18 @@ const SEND_SVG =
 const GRAY = "rgb(113, 118, 123)"
 const BLUE = "rgb(29, 155, 240)"
 
-function createDistributeButton(): HTMLButtonElement {
+// 分发按钮：紧凑 trailing 按钮——不参与操作栏等宽拉伸，紧跟在分享图标旁
+function createDistributeButton(): HTMLElement {
+  const wrap = document.createElement("div")
+  Object.assign(wrap.style, {
+    display: "flex",
+    flex: "0 1 auto",
+    alignItems: "center",
+    minWidth: "0"
+  } as CSSStyleDeclaration)
+  wrap.setAttribute(BUTTON_FLAG, "1")
   const btn = document.createElement("button")
   btn.type = "button"
-  btn.setAttribute(BUTTON_FLAG, "1")
   btn.setAttribute("aria-label", "分发到抖音/小红书/即刻")
   btn.title = "分发到抖音 / 小红书 / 即刻"
   btn.innerHTML = SEND_SVG
@@ -30,7 +38,7 @@ function createDistributeButton(): HTMLButtonElement {
     background: "transparent",
     border: "none",
     margin: "0",
-    padding: "0 12px",
+    padding: "0 7px",
     height: "34px",
     display: "inline-flex",
     alignItems: "center",
@@ -56,7 +64,8 @@ function createDistributeButton(): HTMLButtonElement {
       bus.emit("open-panel", { article })
     }
   })
-  return btn
+  wrap.appendChild(btn)
+  return wrap
 }
 
 // 操作栏：以回复按钮为锚点定位其所在 role=group，避免误中其他分组

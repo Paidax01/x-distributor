@@ -1,7 +1,7 @@
 {
   "name": "x-distributor",
   "version": "0.1.0",
-  "description": "在 x.com 一键将帖子分发到抖音、小红书、即刻",
+  "description": "把 X（Twitter）帖子一键分发到抖音、小红书、即刻：自动识别图文/视频，自动填写文案并上传媒体，支持生成分享卡片图片。",
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build"
@@ -22,7 +22,7 @@
   },
   "manifest": {
     "name": "X 一键分发",
-    "description": "在 x.com 每条帖子旁一键分发到抖音、小红书、即刻，自动识别图文/视频",
+    "description": "把 X（Twitter）帖子一键分发到抖音、小红书、即刻：自动识别图文/视频，自动填写文案并上传媒体，支持生成分享卡片图片。",
     "host_permissions": [
       "https://*/*"
     ],

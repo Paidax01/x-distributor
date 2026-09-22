@@ -105,10 +105,10 @@ export function resolvePlatformNames(keys: string[], mode: PostMode): string[] {
 
 // 为每个勾选平台打开发布页并注入自动化脚本
 export async function createTabsForPlatforms(data: SyncData): Promise<{
-  tabs: { tab: chrome.tabs.Tab; platformInfo: SyncDataPlatform }[]
+  tabs: { tab: chrome.tabs.Tab; platformInfo: SyncDataPlatform; platformLabel: string }[]
   groupId?: number
 }> {
-  const tabs: { tab: chrome.tabs.Tab; platformInfo: SyncDataPlatform }[] = []
+  const tabs: { tab: chrome.tabs.Tab; platformInfo: SyncDataPlatform; platformLabel: string }[] = []
   let groupId: number | undefined
 
   for (const info of data.platforms) {
@@ -143,7 +143,10 @@ export async function createTabsForPlatforms(data: SyncData): Promise<{
     })
 
     await chrome.tabs.update(tab.id!, { active: true })
-    tabs.push({ tab, platformInfo: info })
+    // create 时刻的 tab 对象是过期的（title 为空、真实 url 在 pendingUrl），
+    // 页面就绪后重新读取，保证进度小窗能显示标题/地址
+    const freshTab = await chrome.tabs.get(tab.id!)
+    tabs.push({ tab: freshTab, platformInfo: info, platformLabel: platformInfo.platformName })
 
     // 所有发布标签页归入一个分组
     try {
