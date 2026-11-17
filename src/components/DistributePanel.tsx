@@ -418,14 +418,14 @@ export function DistributePanel() {
   const hasImage = media.some((m) => m.kind === "image")
   const hasVideoItem = media.some((m) => m.kind === "video")
 
-  // 图文模式下抖音/小红书不支持纯文字
+  // 图文模式下抖音/小红书不支持纯文字；即刻/微博支持
   const platformDisabled = (key: string): boolean => {
     if (mode === "VIDEO") return !hasVideoItem
-    return key !== "okjike" && !hasImage
+    return key !== "okjike" && key !== "weibo" && !hasImage
   }
 
   const disabledReason =
-    mode === "VIDEO" ? "没有可用的视频" : "纯文字帖不支持该平台（即刻除外）"
+    mode === "VIDEO" ? "没有可用的视频" : "纯文字帖不支持该平台（即刻、微博除外）"
 
   const handlePublish = async () => {
     const selected = platformKeys.filter((key) => !platformDisabled(key))

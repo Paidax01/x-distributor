@@ -117,3 +117,13 @@ function init() {
 }
 
 init()
+
+// Plasmo 会用 CSUI（Content Script UI）模板包装所有 .tsx 内容脚本，
+// 并渲染其 default export。本模块通过上面的 init() 副作用自行管理
+// DOM（注入按钮 + shadow DOM 面板），不需要 CSUI 渲染任何界面。
+// 但 CSUI 仍会执行 <RawMount.default />，若没有 default export 则为
+// undefined，触发 React #130（Element type is invalid）。
+// 因此提供一个返回 null 的空组件满足 CSUI 契约，避免报错。
+export default function CSUINoop() {
+  return null
+}

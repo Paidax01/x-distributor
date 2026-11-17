@@ -5,6 +5,8 @@ import { DynamicRednote } from "./adapters/rednote-dynamic"
 import { VideoRednote } from "./adapters/rednote-video"
 import { DynamicOkjike } from "./adapters/okjike-dynamic"
 import { VideoOkjike } from "./adapters/okjike-video"
+import { DynamicWeibo } from "./adapters/weibo-dynamic"
+import { VideoWeibo } from "./adapters/weibo-video"
 
 export interface PlatformEntry {
   key: string // douyin / rednote / okjike
@@ -76,6 +78,27 @@ export const PLATFORMS: PlatformEntry[] = [
       platformName: "即刻",
       injectUrl: "https://web.okjike.com",
       injectFunction: VideoOkjike
+    }
+  },
+  {
+    key: "weibo",
+    name: "微博",
+    homeUrl: "https://weibo.com",
+    dynamic: {
+      type: "DYNAMIC",
+      name: "DYNAMIC_WEIBO",
+      platformKey: "weibo",
+      platformName: "微博",
+      injectUrl: "https://weibo.com",
+      injectFunction: DynamicWeibo
+    },
+    video: {
+      type: "VIDEO",
+      name: "VIDEO_WEIBO",
+      platformKey: "weibo",
+      platformName: "微博",
+      injectUrl: "https://weibo.com/upload/channel",
+      injectFunction: VideoWeibo
     }
   }
 ]
