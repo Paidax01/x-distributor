@@ -30,7 +30,8 @@
       "storage",
       "tabs",
       "tabGroups",
-      "scripting"
+      "scripting",
+      "downloads"
     ]
   }
 }

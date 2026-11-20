@@ -25,6 +25,7 @@ import { PlatformCard } from "./PlatformCard"
 import {
   AlertIcon,
   CloseIcon,
+  DownloadIcon,
   ImageIcon,
   SendIcon,
   SettingsIcon,
@@ -427,6 +428,38 @@ export function DistributePanel() {
   const disabledReason =
     mode === "VIDEO" ? "没有可用的视频" : "纯文字帖不支持该平台（即刻、微博除外）"
 
+  // ---------- 下载媒体（图片原图 / 视频） ----------
+  // 走 background 的 chrome.downloads，避开跨域 a.download 失效问题；
+  // conflictAction=uniquify 自动加序号，批量下载不会互相覆盖。
+  const downloadMedia = useCallback(async (items: TweetMediaItem[]) => {
+    if (items.length === 0) return
+    let failed = 0
+    for (const item of items) {
+      try {
+        const res = await chrome.runtime.sendMessage({
+          action: "X_DIST_DOWNLOAD_MEDIA",
+          url: item.url,
+          filename: item.name
+        })
+        if (!res?.ok) failed++
+      } catch {
+        failed++
+      }
+    }
+    setNotice(
+      failed === 0
+        ? `已开始下载 ${items.length} 个文件`
+        : `已开始下载 ${items.length - failed} 个文件，${failed} 个失败`
+    )
+  }, [])
+
+  const downloadOne = useCallback(
+    (item: TweetMediaItem) => {
+      void downloadMedia([item])
+    },
+    [downloadMedia]
+  )
+
   const handlePublish = async () => {
     const selected = platformKeys.filter((key) => !platformDisabled(key))
     if (selected.length === 0) {
@@ -573,11 +606,22 @@ export function DistributePanel() {
           {/* 媒体 */}
           {media.length > 0 && (
             <div className="space-y-1.5">
-              <div className="text-xs text-neutral-500">媒体（{media.length}，点击可放大预览）</div>
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-neutral-500">媒体（{media.length}，点击可放大预览）</div>
+                <button
+                  type="button"
+                  onClick={() => void downloadMedia(media)}
+                  title="下载全部图片/视频到本地"
+                  className="flex items-center gap-1 rounded-full px-2 py-1 text-xs text-sky-600 transition-colors hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-500/10">
+                  <DownloadIcon className="h-3.5 w-3.5" />
+                  下载全部
+                </button>
+              </div>
               <MediaList
                 items={media}
                 onRemove={(index) => setMedia((prev) => prev.filter((_, i) => i !== index))}
                 onPreview={setPreviewItem}
+                onDownload={downloadOne}
               />
             </div>
           )}
