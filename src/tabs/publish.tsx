@@ -65,7 +65,8 @@ export default function Publish() {
       const nameLabels: Record<string, string> = {
         douyin: "抖音",
         rednote: "小红书",
-        okjike: "即刻"
+        okjike: "即刻",
+        weibo: "微博"
       }
       setPlatformNames(
         Array.from(

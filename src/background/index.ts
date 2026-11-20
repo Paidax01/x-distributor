@@ -93,6 +93,25 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     return true
   }
 
+  // 下载推文媒体（图片原图 / 视频 mp4）：在扩展上下文发起，不受页面 CORS 与跨域 a.download 限制
+  if (request.action === "X_DIST_DOWNLOAD_MEDIA") {
+    const url = String(request.url ?? "")
+    const filename = String(request.filename ?? "download")
+    if (!url) {
+      sendResponse({ ok: false, error: "下载地址为空" })
+      return true
+    }
+    chrome.downloads.download({ url, filename, conflictAction: "uniquify" }, (downloadId) => {
+      const lastError = chrome.runtime.lastError
+      if (lastError) {
+        sendResponse({ ok: false, error: lastError.message })
+      } else {
+        sendResponse({ ok: true, id: downloadId })
+      }
+    })
+    return true
+  }
+
   // 分享卡片渲染（HTML 引擎）：转发到扩展渲染窗口执行
   if (request.action === "X_DIST_RENDER_CARDS" && request.engine === "html") {
     ;(async () => {

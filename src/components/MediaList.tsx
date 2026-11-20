@@ -1,14 +1,16 @@
 import type { TweetMediaItem } from "~extract/tweet"
-import { TrashIcon, VideoIcon } from "./icons"
+import { DownloadIcon, TrashIcon, VideoIcon } from "./icons"
 
 export function MediaList({
   items,
   onRemove,
-  onPreview
+  onPreview,
+  onDownload
 }: {
   items: TweetMediaItem[]
   onRemove: (index: number) => void
   onPreview: (item: TweetMediaItem) => void
+  onDownload: (item: TweetMediaItem) => void
 }) {
   if (items.length === 0) return null
 
@@ -52,6 +54,17 @@ export function MediaList({
               {item.label}
             </span>
           )}
+          <button
+            type="button"
+            aria-label="下载"
+            title={`下载 ${item.name}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDownload(item)
+            }}
+            className="absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100">
+            <DownloadIcon className="h-3 w-3" />
+          </button>
           <button
             type="button"
             aria-label="删除"
