@@ -691,10 +691,10 @@ export function DistributePanel() {
             </button>
           )}
 
-          {/* 平台选择 */}
+          {/* 平台选择：方格布局，每行 4 个，超出自动换行 */}
           <div className="space-y-1.5">
             <div className="text-xs text-neutral-500">分发平台</div>
-            <div className="space-y-2">
+            <div className="grid grid-cols-4 gap-2">
               {PLATFORMS.map((p) => (
                 <PlatformCard
                   key={p.key}
